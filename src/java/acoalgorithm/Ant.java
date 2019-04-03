@@ -1,14 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package acoalgorithm;
 
-/**
- *
- * @author Vaehnor
- */
 public class Ant 
 {
     protected int trailSize;
@@ -38,7 +29,9 @@ public class Ant
     }
 
     protected void clear() {
-        for (int i = 0; i < trailSize; i++)
+        for (int i = 0; i < trailSize; i++) {
             visited[i] = false;
+            trail[i] = 0;
+        }
     }
 }

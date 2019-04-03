@@ -11,7 +11,7 @@ package acoalgorithm;
  */
 public class Launcher {
     public static void main(String[] args) {
-        AntColonyOptimization aco = new AntColonyOptimization(0, 0, 0, 0, 0, 0, 0, 0, 10);
-        aco.generateRandomMatrix(5);
+        AntColonyOptimization aco = new AntColonyOptimization(0, 1, 5, 0.5, 500, 0.8, 0.01, 1000, 10);
+        aco.solve();
     }
 }

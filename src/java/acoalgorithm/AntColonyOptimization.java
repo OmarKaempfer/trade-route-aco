@@ -9,7 +9,7 @@ import java.util.stream.IntStream;
 
 public class AntColonyOptimization {
     public String s="";
-    private double c;             //number of trails
+    private double c;             //initial value of trails
     private double alpha;           //pheromone importance
     private double beta;            //distance priority
     private double evaporation;
@@ -109,12 +109,16 @@ public class AntColonyOptimization {
         setupAnts();
         clearTrails();
         for(int i=0; i < maxIterations; i++) {
+            setupAnts();
             moveAnts();
             updateTrails();
             updateBest();
+            s+=("\nBest tour length: " + (bestTourLength - numberOfCities));
+            s+=("\nBest tour order: " + Arrays.toString(bestTourOrder));
         }
         s+=("\nBest tour length: " + (bestTourLength - numberOfCities));
         s+=("\nBest tour order: " + Arrays.toString(bestTourOrder));
+        System.out.println(s);
         return bestTourOrder.clone();
     }
 
@@ -160,7 +164,9 @@ public class AntColonyOptimization {
             if (total >= r) 
                 return i;
         }
-        throw new RuntimeException("There are no other cities");
+        //throw new RuntimeException("There are no other cities");
+        
+        return IntStream.range(0, numberOfCities).filter(i -> ant.visited(i) == false).findFirst().getAsInt();
     }
 
     /**
