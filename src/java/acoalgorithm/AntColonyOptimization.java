@@ -1,10 +1,13 @@
 package acoalgorithm;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Random;
 import java.util.stream.IntStream;
+import model.City;
+import model.Commodity;
 
 
 public class AntColonyOptimization {
@@ -29,8 +32,10 @@ public class AntColonyOptimization {
 
     private int currentIndex;
 
-    private int[] bestTourOrder;
-    private double bestTourLength;
+    private City[] cities;
+    private HashMap<Commodity, City[]> purchasePoints;
+    private int[] bestRouteOrder;
+    private double bestRouteProfit;
 
     public AntColonyOptimization(double c, double alpha, double beta, double evaporation, 
             double Q, double antFactor, double randomFactor, int maxIter, int nrOfCities) {
@@ -53,7 +58,57 @@ public class AntColonyOptimization {
         ants = new Ant[numberOfAnts];
         IntStream.range(0, numberOfAnts).forEach(i -> ants[i] = new Ant(numberOfCities));
     }
-
+    
+        /**
+     * Generate initial solution
+     */
+    public double[][][] generateGraphMatrix() {
+        int n = numberOfCities;
+        
+        double[][][] randomMatrix = new double[n][][];
+        HashMap<Commodity, Double> sales;
+        HashMap<Commodity, Double> purchases;
+        City currentCity;
+        //The profit of each possible action in each possible station is
+        //calculated
+        for(int i=0;i<n;i++) {
+            currentCity = cities[n];
+            sales = currentCity.getSales();
+            
+            double[][] possibleActions = new double[sales.size()][];
+            
+            //for each commodity the current city sells we calculate the profit
+            //for reselling it in each station
+            for(Commodity commodity : sales.keySet()) {
+                double[] actionProfit = new double[purchasePoints.get(commodity).length];
+                for(City destination : purchasePoints.get(commodity)) {
+                    
+                }
+            }
+        }
+         
+        s+=("\t");
+        for(int i=0;i<n;i++)
+            s+=(i+"\t");
+        s+="\n";
+        
+        for(int i=0;i<n;i++) {
+            s+=(i+"\t");
+            for(int j=0;j<n;j++)
+                s+=(randomMatrix[i][j]+"\t");
+            s+="\n";
+        }
+        
+        int sum=0;
+        
+        for(int i=0;i<n-1;i++)
+            sum+=randomMatrix[i][i+1];
+        sum+=randomMatrix[n-1][0];
+        s+=("\nNaive solution 0-1-2-...-n-0 = "+sum+"\n");
+        System.out.println(s);
+        return randomMatrix;
+    }
+    
     /**
      * Generate initial solution
      */
@@ -113,13 +168,13 @@ public class AntColonyOptimization {
             moveAnts();
             updateTrails();
             updateBest();
-            s+=("\nBest tour length: " + (bestTourLength - numberOfCities));
-            s+=("\nBest tour order: " + Arrays.toString(bestTourOrder));
+            s+=("\nBest tour length: " + (bestRouteProfit - numberOfCities));
+            s+=("\nBest tour order: " + Arrays.toString(bestRouteOrder));
         }
-        s+=("\nBest tour length: " + (bestTourLength - numberOfCities));
-        s+=("\nBest tour order: " + Arrays.toString(bestTourOrder));
+        s+=("\nBest tour length: " + (bestRouteProfit - numberOfCities));
+        s+=("\nBest tour order: " + Arrays.toString(bestRouteOrder));
         System.out.println(s);
-        return bestTourOrder.clone();
+        return bestRouteOrder.clone();
     }
 
     /**
@@ -150,11 +205,12 @@ public class AntColonyOptimization {
 
     private int selectNextCity(Ant ant) {
         int t = random.nextInt(numberOfCities - currentIndex);
+        
+        //If the randomFactor is fulfilled a random city is visited
         if (random.nextDouble() < randomFactor) {
-            if(!ant.visited(t)) {
-                return t;
-            }
+            return t;
         }
+        
         calculateProbabilities(ant);
         double r = random.nextDouble();
         double total = 0;
@@ -209,16 +265,16 @@ public class AntColonyOptimization {
      * Update the best solution
      */
     private void updateBest() {
-        if (bestTourOrder == null) {
-            bestTourOrder = ants[0].trail;
-            bestTourLength = ants[0].trailLength(graph);
+        if (bestRouteOrder == null) {
+            bestRouteOrder = ants[0].trail;
+            bestRouteProfit = ants[0].trailLength(graph);
         }
         
         for (Ant a : ants) {
-            if (a.trailLength(graph) < bestTourLength) 
+            if (a.trailLength(graph) < bestRouteProfit) 
             {
-                bestTourLength = a.trailLength(graph);
-                bestTourOrder = a.trail.clone();
+                bestRouteProfit = a.trailLength(graph);
+                bestRouteOrder = a.trail.clone();
             }
         }
     }
