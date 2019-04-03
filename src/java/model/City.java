@@ -39,4 +39,8 @@ public class City {
     public double getSellingPrice(Commodity commodity) {
         return purchases.get(commodity);
     }
+    
+    public Commodity getSellingCommodity(int index) {
+        return sales.keySet().stream().toArray(Commodity[] ::new)[index];
+    }
 }

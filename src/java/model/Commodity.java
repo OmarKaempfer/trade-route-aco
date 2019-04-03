@@ -1,20 +1,13 @@
 package model;
 
 public class Commodity {
-    private String name;
-    private double volume;
+    private final String name;
 
-    public Commodity(String name, double volume) {
+    public Commodity(String name) {
         this.name = name;
-        this.volume = volume;
     }
 
     public String getName() {
         return name;
-    }
-
-    public double getVolume() {
-        return volume;
-    }
-    
+    }   
 }

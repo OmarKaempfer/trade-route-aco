@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.IntStream;
 import model.City;
 import model.Commodity;
+import model.ProfitCalculator;
 
 
 public class AntColonyOptimization {
@@ -24,18 +26,19 @@ public class AntColonyOptimization {
 
     private int numberOfCities;
     private int numberOfAnts;
-    private double graph[][];
-    private double trails[][];
+    private double[][][] graph;
+    private double[][][] trails;
     private Ant[] ants;
     private Random random = new Random();
-    private double probabilities[];
+    private double probabilities[][];
 
     private int currentIndex;
 
     private City[] cities;
     private HashMap<Commodity, City[]> purchasePoints;
-    private int[] bestRouteOrder;
+    private int[][] bestRouteOrder;
     private double bestRouteProfit;
+    private double shipCapacity = 100;
 
     public AntColonyOptimization(double c, double alpha, double beta, double evaporation, 
             double Q, double antFactor, double randomFactor, int maxIter, int nrOfCities) {
@@ -49,15 +52,28 @@ public class AntColonyOptimization {
         this.maxIterations = maxIter;
         this.numberOfCities = nrOfCities;
                 
-        graph = generateRandomMatrix(numberOfCities);
+        this.graph = generateGraphMatrix();
         numberOfAnts = (int) (numberOfCities * antFactor);
 
-        trails = new double[numberOfCities][numberOfCities];
-        probabilities = new double[numberOfCities];
+        this.trails = initializeTrails();
         
         ants = new Ant[numberOfAnts];
-        IntStream.range(0, numberOfAnts).forEach(i -> ants[i] = new Ant(numberOfCities));
+        IntStream.range(0, numberOfAnts).forEach(i -> ants[i] = new Ant(numberOfCities, cities, purchasePoints));
     }
+
+    protected double[][][] initializeTrails() {
+        double[][][] trails = new double[numberOfCities][][];
+        for (int i = 0; i < numberOfCities; i++) {
+            trails[i] = new double[cities[i].getSales().keySet().size()][];
+            for (int j = 0; j < trails[i].length; j++) {
+                trails[i][j]
+                        = new double[purchasePoints.get(cities[i].getSales().keySet()
+                                .stream().toArray(Commodity[]::new)[j]).length];
+            }
+        }
+        return trails;
+    }
+    
     
         /**
      * Generate initial solution
@@ -65,48 +81,51 @@ public class AntColonyOptimization {
     public double[][][] generateGraphMatrix() {
         int n = numberOfCities;
         
-        double[][][] randomMatrix = new double[n][][];
+        double[][][] graph = new double[n][][];
         HashMap<Commodity, Double> sales;
         HashMap<Commodity, Double> purchases;
+        Commodity[] commoditiesSold;
         City currentCity;
-        //The profit of each possible action in each possible station is
-        //calculated
-        for(int i=0;i<n;i++) {
+        City[] purchasingCities;
+        
+        
+        //The profit of each possible trade in each station is calculated
+        //First we iterate through the stations
+        for(int i = 0; i < n; i++) {
             currentCity = cities[n];
             sales = currentCity.getSales();
+            commoditiesSold = sales.keySet().stream().toArray(Commodity[] ::new); 
             
-            double[][] possibleActions = new double[sales.size()][];
+            double[][] commoditiesProfit = new double[sales.size()][];
             
             //for each commodity the current city sells we calculate the profit
-            //for reselling it in each station
-            for(Commodity commodity : sales.keySet()) {
-                double[] actionProfit = new double[purchasePoints.get(commodity).length];
-                for(City destination : purchasePoints.get(commodity)) {
-                    
+            //for selling it in each city that buys it
+            for(int j = 0; j < commoditiesSold.length; j++) {
+                purchasingCities = this.purchasePoints.get(commoditiesSold[j]);
+                double[] citySpecificProfit = new double[purchasingCities.length];
+                
+                //we calculate the profit for the current commodity in each
+                //station that buys it
+                for(int k = 0; k < purchasingCities.length; k++) {
+                    citySpecificProfit[k] = ProfitCalculator.calculateProfit(currentCity, 
+                                purchasingCities[j], commoditiesSold[j], this.shipCapacity);
                 }
+                commoditiesProfit[j] = citySpecificProfit;
+            }
+            graph[i] = commoditiesProfit;
+        }
+        
+        return graph;
+    }
+    
+    
+    protected static int getIndexOf(Object[] array, Object element) {
+        for(int i = 0; i < array.length; i++) {
+            if(array[i] == element) {
+                return i;
             }
         }
-         
-        s+=("\t");
-        for(int i=0;i<n;i++)
-            s+=(i+"\t");
-        s+="\n";
-        
-        for(int i=0;i<n;i++) {
-            s+=(i+"\t");
-            for(int j=0;j<n;j++)
-                s+=(randomMatrix[i][j]+"\t");
-            s+="\n";
-        }
-        
-        int sum=0;
-        
-        for(int i=0;i<n-1;i++)
-            sum+=randomMatrix[i][i+1];
-        sum+=randomMatrix[n-1][0];
-        s+=("\nNaive solution 0-1-2-...-n-0 = "+sum+"\n");
-        System.out.println(s);
-        return randomMatrix;
+        return -1;
     }
     
     /**
@@ -160,7 +179,7 @@ public class AntColonyOptimization {
     /**
      * Use this method to run the main logic
      */
-    public int[] solve() {
+    public int[][] solve() {
         setupAnts();
         clearTrails();
         for(int i=0; i < maxIterations; i++) {
@@ -184,7 +203,7 @@ public class AntColonyOptimization {
         for(int i = 0; i < numberOfAnts; i++) {
             for(Ant ant : ants) {
                 ant.clear();
-                ant.visitCity(-1, random.nextInt(numberOfCities));
+                ant.tradeWith(-1, -1, random.nextInt(numberOfCities));
             }
         }
         currentIndex = 0;
@@ -194,53 +213,81 @@ public class AntColonyOptimization {
      * At each iteration, move ants
      */
     private void moveAnts() {
-        for(int i=currentIndex;i<numberOfCities-1;i++) {
-            for(Ant ant:ants) {
-                ant.visitCity(currentIndex,selectNextCity(ant));
+        int[] selection;
+        for(int i = currentIndex; i < numberOfCities; i++) {
+            for(Ant ant : ants) {
+                selection = selectNextCity(ant);
+                ant.tradeWith(currentIndex, selection[0], selection[1]);
             }
             currentIndex++;
         }
     }
 
 
-    private int selectNextCity(Ant ant) {
-        int t = random.nextInt(numberOfCities - currentIndex);
+    private int[] selectNextCity(Ant ant) {
+
         
         //If the randomFactor is fulfilled a random city is visited
         if (random.nextDouble() < randomFactor) {
-            return t;
+            int randomCommodity = 
+                random.nextInt(ant.getCurrentCity().getSales().keySet().size());
+        
+            City[] purchasingCities = purchasePoints.get(randomCommodity);
+            int randomCity = random.nextInt(purchasingCities.length);
+            return new int[] {randomCommodity, randomCity};
         }
         
         calculateProbabilities(ant);
         double r = random.nextDouble();
         double total = 0;
         
-        for (int i = 0; i < numberOfCities; i++) {
-            total += probabilities[i];
-            if (total >= r) 
-                return i;
+        for (int j = 0; j < probabilities.length; j++) {
+            for (int k = 0; k < probabilities[j].length; k++) {
+                total += probabilities[j][k];
+                
+                if (total >= r) 
+                return new int[] {j, k};
+            }
         }
-        //throw new RuntimeException("There are no other cities");
         
-        return IntStream.range(0, numberOfCities).filter(i -> ant.visited(i) == false).findFirst().getAsInt();
+        int randomCommodity = 
+            random.nextInt(ant.getCurrentCity().getSales().keySet().size());
+
+        City[] purchasingCities = purchasePoints.get(randomCommodity);
+        int randomCity = random.nextInt(purchasingCities.length);
+        return new int[] {randomCommodity, randomCity};
     }
 
     /**
      * Calculate the next city picks probabilities
      */
     public void calculateProbabilities(Ant ant) {
-        int i = ant.trail[currentIndex];
+        City currentCity = ant.getCurrentCity();
+        int currentCityIndex = getIndexOf(cities, currentCity);
+        Commodity[] commodities = currentCity.getSales().keySet().stream().toArray(Commodity[] ::new);
+        City[] currentCommodityPP;
         double pheromone = 0.0;
-        for (int l = 0; l < numberOfCities; l++) {
-            if (!ant.visited(l)) 
-                pheromone += Math.pow(trails[i][l], alpha) * Math.pow(1.0 / graph[i][l], beta);
+        probabilities = new double[commodities.length][];
+        
+        for(int j = 0; j < commodities.length; j++) {
+            currentCommodityPP = purchasePoints.get(commodities[j]);
+            probabilities[j] = new double[currentCommodityPP.length];
+            
+            for(int k = 0; k < currentCommodityPP.length; k++) {
+                if(!ant.visited(currentCityIndex, j, k)) {
+                    pheromone
+                    += Math.pow(trails[currentCityIndex][j][k], alpha) * 
+                            Math.pow(1.0 / graph[currentCityIndex][j][k], beta);
+                }
+            }
         }
-        for (int j = 0; j < numberOfCities; j++) {
-            if (ant.visited(j)) 
-                probabilities[j] = 0.0;
-            else {
-                double numerator = Math.pow(trails[i][j], alpha) * Math.pow(1.0 / graph[i][j], beta);
-                probabilities[j] = numerator / pheromone;
+             
+        for(int j = 0; j < commodities.length; j++) {
+            currentCommodityPP = purchasePoints.get(commodities[j]);
+            
+            for(int k = 0; k < currentCommodityPP.length; k++) {
+                double numerator = Math.pow(trails[currentCityIndex][j][k], alpha) * Math.pow(1.0 / graph[currentCityIndex][j][k], beta);
+                probabilities[j][k] = numerator / pheromone;
             }
         }
     }
@@ -249,15 +296,18 @@ public class AntColonyOptimization {
      * Update trails that ants used
      */
     private void updateTrails() {
-        for (int i = 0; i < numberOfCities; i++) {
-            for (int j = 0; j < numberOfCities; j++) 
-                trails[i][j] *= evaporation;
+        for (int i = 0; i < trails.length; i++) {
+            for (int j = 0; j < trails[i].length; j++) 
+                for(int k = 0; k < trails[j].length; k++)
+                    trails[i][j][k] *= evaporation;
         }
+        
         for (Ant a : ants) {
             double contribution = Q / a.trailLength(graph);
-            for (int i = 0; i < numberOfCities - 1; i++)
-                trails[a.trail[i]][a.trail[i + 1]] += contribution;
-            trails[a.trail[numberOfCities - 1]][a.trail[0]] += contribution;
+            for (int i = 0; i < a.trailSize - 1; i++) {
+                trails[a.trail[i + 1][2]][a.trail[i + 1][0]][a.trail[i + 1][1]] 
+                        += contribution;
+            }
         }
     }
 
@@ -283,9 +333,12 @@ public class AntColonyOptimization {
      * Clear trails after simulation
      */
     private void clearTrails() {
-        for(int i=0;i<numberOfCities;i++) {
-            for(int j=0;j<numberOfCities;j++)
-                trails[i][j]=c;
+        for(int i = 0; i < trails.length; i++) {
+            for(int j = 0; j < trails[i].length; j++) {
+                for(int k = 0; k < trails[i][j].length; k++) {
+                    trails[i][j][k] = c;
+                }
+            }
         }
     }
 }
