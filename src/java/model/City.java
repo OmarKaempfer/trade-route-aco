@@ -5,15 +5,13 @@ import java.util.HashMap;
 public class City {
     private String name;
     private Location location;
+    private String maxSize;
     private HashMap<Commodity, Double> sales;
     private HashMap<Commodity, Double> purchases;
 
-    public City(String name, Location location, HashMap<Commodity, Double> sales,
-            HashMap<Commodity, Double> purchases) {
+    public City(String name, Location location, String maxSize) {
         this.name = name;
         this.location = location;
-        this.sales = sales;
-        this.purchases = purchases;
     }
 
     public String getName() {
@@ -42,5 +40,13 @@ public class City {
     
     public Commodity getSellingCommodity(int index) {
         return sales.keySet().stream().toArray(Commodity[] ::new)[index];
+    }
+    
+    public void setSales(HashMap<Commodity, Double> sales) {
+        this.sales = sales;
+    }
+    
+    public void setPurchases(HashMap<Commodity, Double> purchases) {
+        this.purchases = purchases;
     }
 }
