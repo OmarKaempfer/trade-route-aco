@@ -187,11 +187,9 @@ public class AntColonyOptimization {
             moveAnts();
             updateTrails();
             updateBest();
-            s+=("\nBest tour length: " + (bestRouteProfit - numberOfCities));
-            s+=("\nBest tour order: " + Arrays.toString(bestRouteOrder));
         }
-        s+=("\nBest tour length: " + (bestRouteProfit - numberOfCities));
-        s+=("\nBest tour order: " + Arrays.toString(bestRouteOrder));
+        s+=("\nBest route profit: " + bestRouteProfit);
+        s+=("\nBest route order: " + Arrays.toString(bestRouteOrder));
         System.out.println(s);
         return bestRouteOrder.clone();
     }
@@ -275,9 +273,19 @@ public class AntColonyOptimization {
             
             for(int k = 0; k < currentCommodityPP.length; k++) {
                 if(!ant.visited(currentCityIndex, j, k)) {
-                    pheromone
-                    += Math.pow(trails[currentCityIndex][j][k], alpha) * 
-                            Math.pow(1.0 / graph[currentCityIndex][j][k], beta);
+                    if(graph[currentCityIndex][j][k] < -0.1) {
+                        pheromone
+                        += Math.pow(trails[currentCityIndex][j][k], alpha) * 
+                            Math.pow(1 / -graph[currentCityIndex][j][k], beta);
+
+                    } else if(graph[currentCityIndex][j][k] > 0.1){
+                        pheromone
+                        += Math.pow(trails[currentCityIndex][j][k], alpha) * 
+                            Math.pow(graph[currentCityIndex][j][k], beta);
+                    } else {
+                        pheromone
+                        += Math.pow(trails[currentCityIndex][j][k], alpha);
+                    }
                 }
             }
         }
@@ -303,7 +311,7 @@ public class AntColonyOptimization {
         }
         
         for (Ant a : ants) {
-            double contribution = Q / a.trailLength(graph);
+            double contribution = Q / a.trailProfit(graph);
             for (int i = 0; i < a.trailSize - 1; i++) {
                 trails[a.trail[i + 1][2]][a.trail[i + 1][0]][a.trail[i + 1][1]] 
                         += contribution;
@@ -317,13 +325,13 @@ public class AntColonyOptimization {
     private void updateBest() {
         if (bestRouteOrder == null) {
             bestRouteOrder = ants[0].trail;
-            bestRouteProfit = ants[0].trailLength(graph);
+            bestRouteProfit = ants[0].trailProfit(graph);
         }
         
         for (Ant a : ants) {
-            if (a.trailLength(graph) < bestRouteProfit) 
+            if (a.trailProfit(graph) > bestRouteProfit) 
             {
-                bestRouteProfit = a.trailLength(graph);
+                bestRouteProfit = a.trailProfit(graph);
                 bestRouteOrder = a.trail.clone();
             }
         }

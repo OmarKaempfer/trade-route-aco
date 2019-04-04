@@ -40,7 +40,7 @@ public class Ant
         return visited[i][j][k];
     }
 
-    protected double trailLength(double graph[][][]) {
+    protected double trailProfit(double graph[][][]) {
         double length = 0;
         for (int i = 0; i < trailSize - 1; i++) 
             length += graph[trail[i][2]][trail[i+1][0]][trail[i + 1][1]];   //profit for the specified city-commodity-destiny

@@ -14,4 +14,7 @@ public class Launcher {
         AntColonyOptimization aco = new AntColonyOptimization(0, 1, 5, 0.5, 500, 0.8, 0.01, 1000, 10);
         aco.solve();
     }
+    public void initializeNames() {
+        
+    }
 }
