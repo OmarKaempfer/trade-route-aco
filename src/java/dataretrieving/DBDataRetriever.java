@@ -5,6 +5,8 @@
  */
 package dataretrieving;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import model.City;
 import model.Commodity;
 import model.Location;
@@ -51,5 +53,69 @@ public class DBDataRetriever {
             System.out.println(city.getName());
         }
         return cityArray;
+    }
+    
+    public HashMap<Commodity, Double> getSales(City city, Commodity[] commodities) {
+        JSONArray sales = 
+                new JSONArray(new DBSales().findAll_JSON(String.class));
+
+        HashMap<Commodity, Double> salesMap = new HashMap<Commodity, Double>();
+        for (int i = 0; i < sales.length(); i++) {
+            JSONObject jsonobject = sales.getJSONObject(i);
+            if(jsonobject.getString("location").equals(city.getName())) {
+                
+                for(Commodity comm : commodities) {
+                    if(comm.getName().equals(jsonobject.getString("commodity"))) {
+                        salesMap.put(comm, jsonobject.getDouble("price"));
+                    }
+                }
+            }
+        }
+
+        return salesMap;
+    }
+    
+    public HashMap<Commodity, Double> getPurchases(City city, Commodity[] commodities) {
+        JSONArray purchases = 
+                new JSONArray(new DBPurchasing().findAll_JSON(String.class));
+        System.out.println(new DBPurchasing().findAll_JSON(String.class));
+        
+        HashMap<Commodity, Double> purchasesMap = new HashMap<>();
+        for (int i = 0; i < purchases.length(); i++) {
+            JSONObject jsonobject = purchases.getJSONObject(i);
+            if(jsonobject.getString("location").equals(city.getName())) {
+                
+                for(Commodity comm : commodities) {
+                    if(comm.getName().equals(jsonobject.getString("commodity"))) {
+                        purchasesMap.put(comm, jsonobject.getDouble("price"));
+                    }
+                }
+            }
+        }
+
+        return purchasesMap;
+    }
+    
+    public HashMap<Commodity, City[]> getPurchasePoints(Commodity[] commodities, City[] cities) {
+        HashMap<Commodity, City[]> purchasePoints = new HashMap<>();
+        JSONArray purchases = 
+                new JSONArray(new DBPurchasing().findAll_JSON(String.class));
+        for(Commodity comm : commodities) {
+            ArrayList<City> commCities = new ArrayList<>();
+            
+            for(int i = 0; i < purchases.length(); i++) {
+                JSONObject jsonobject = purchases.getJSONObject(i);
+                if(comm.getName().equals(jsonobject.getString("commodity"))) {
+                    for(int j = 0; j < cities.length; j++) {
+                        if(cities[j].getName().equals(jsonobject.getString("location"))) {
+                            commCities.add(cities[j]);
+                        }
+                    }
+                }
+            }
+            purchasePoints.put(comm, (City[])commCities.toArray());
+        }
+
+        return purchasePoints;
     }
 }

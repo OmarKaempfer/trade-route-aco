@@ -35,13 +35,14 @@ public class AntColonyOptimization {
     private int currentIndex;
 
     private City[] cities;
+    private Commodity[] commodities;
     private HashMap<Commodity, City[]> purchasePoints;
     private int[][] bestRouteOrder;
     private double bestRouteProfit;
     private double shipCapacity = 100;
 
     public AntColonyOptimization(double c, double alpha, double beta, double evaporation, 
-            double Q, double antFactor, double randomFactor, int maxIter, int nrOfCities) {
+            double Q, double antFactor, double randomFactor, int maxIter, City[] cities) {
         this.c = c;
         this.alpha = alpha;
         this.beta = beta;
@@ -50,8 +51,8 @@ public class AntColonyOptimization {
         this.antFactor = antFactor;
         this.randomFactor = randomFactor;
         this.maxIterations = maxIter;
-        this.numberOfCities = nrOfCities;
-                
+        this.numberOfCities = cities.length;
+        this.cities = cities;
         this.graph = generateGraphMatrix();
         numberOfAnts = (int) (numberOfCities * antFactor);
 
@@ -92,7 +93,7 @@ public class AntColonyOptimization {
         //The profit of each possible trade in each station is calculated
         //First we iterate through the stations
         for(int i = 0; i < n; i++) {
-            currentCity = cities[n];
+            currentCity = cities[i];
             sales = currentCity.getSales();
             commoditiesSold = sales.keySet().stream().toArray(Commodity[] ::new); 
             
@@ -348,5 +349,29 @@ public class AntColonyOptimization {
                 }
             }
         }
+    }
+    
+    public void setCities(City[] cities) {
+        this.cities = cities;
+    }
+    
+    public void setCommodities(Commodity[] commodities) {
+        this.commodities = commodities;
+    }
+    
+    public void setPurchasePoints(HashMap<Commodity, City[]> purchasePoints) {
+        this.purchasePoints = purchasePoints;
+    }
+    
+    public HashMap<Commodity, City[]> getPurchasePoints() {
+        return this.purchasePoints;
+    }
+    
+    public City[] getCities() {
+        return this.cities;
+    }
+    
+    public Commodity[] getCommodities() {
+        return this.commodities;
     }
 }

@@ -9,21 +9,34 @@ import dataretrieving.DBCommodities;
 import dataretrieving.DBDataRetriever;
 import dataretrieving.DBLocations;
 import dataretrieving.DBPurchasing;
+import java.util.HashMap;
 import model.City;
+import model.Commodity;
 
 /**
  *
  * @author Vaehnor
  */
 public class Launcher {
-    public static void main(String[] args) {
-        //AntColonyOptimization aco = new AntColonyOptimization(0, 1, 5, 0.5, 500, 0.8, 0.01, 1000, 10);
-        //aco.solve();
-        DBDataRetriever dBDataRetriever = new DBDataRetriever();
-        //dBDataRetriever.getAllCommodities();
-        System.out.println(new DBPurchasing().findAll_JSON(String.class));
-    }
-    public void initializeNames() {
+        City[] cities;
+        Commodity[] commodities;
         
+
+    public static void main(String[] args) {
+        launch();
+    }
+    
+    public static void launch() {
+        DBDataRetriever dBDataRetriever = new DBDataRetriever();
+        City[] cities = dBDataRetriever.getAllCities();
+        Commodity[] commodities = dBDataRetriever.getAllCommodities();
+        
+        for(City city : cities) {
+            city.setSales(dBDataRetriever.getSales(city, commodities));
+            city.setPurchases(dBDataRetriever.getPurchases(city, commodities));
+        }
+        
+        AntColonyOptimization aco = new AntColonyOptimization(0, 1, 5, 0.5, 500, 0.8, 0.01, 1000, cities);
+        aco.setPurchasePoints(dBDataRetriever.getPurchasePoints(commodities, cities));
     }
 }
