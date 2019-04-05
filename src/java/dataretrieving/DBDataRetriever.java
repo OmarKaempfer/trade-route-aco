@@ -34,7 +34,6 @@ public class DBDataRetriever {
     public City[] getAllCities() {
         JSONArray cities = 
                 new JSONArray(new DBLocations().findAll_JSON(String.class));
-        System.out.println();
         City[] cityArray = new City[cities.length()];
         for (int i = 0; i < cities.length(); i++) {
             JSONObject jsonobject = cities.getJSONObject(i);
@@ -78,7 +77,6 @@ public class DBDataRetriever {
     public HashMap<Commodity, Double> getPurchases(City city, Commodity[] commodities) {
         JSONArray purchases = 
                 new JSONArray(new DBPurchasing().findAll_JSON(String.class));
-        System.out.println(new DBPurchasing().findAll_JSON(String.class));
         
         HashMap<Commodity, Double> purchasesMap = new HashMap<>();
         for (int i = 0; i < purchases.length(); i++) {
@@ -113,7 +111,7 @@ public class DBDataRetriever {
                     }
                 }
             }
-            purchasePoints.put(comm, (City[])commCities.toArray());
+            purchasePoints.put(comm, commCities.toArray(new City[commCities.size()]));
         }
 
         return purchasePoints;

@@ -9,6 +9,7 @@ import dataretrieving.DBCommodities;
 import dataretrieving.DBDataRetriever;
 import dataretrieving.DBLocations;
 import dataretrieving.DBPurchasing;
+import dataretrieving.DBSales;
 import java.util.HashMap;
 import model.City;
 import model.Commodity;
@@ -35,8 +36,10 @@ public class Launcher {
             city.setSales(dBDataRetriever.getSales(city, commodities));
             city.setPurchases(dBDataRetriever.getPurchases(city, commodities));
         }
-        
-        AntColonyOptimization aco = new AntColonyOptimization(0, 1, 5, 0.5, 500, 0.8, 0.01, 1000, cities);
-        aco.setPurchasePoints(dBDataRetriever.getPurchasePoints(commodities, cities));
+        AntColonyOptimization aco = new AntColonyOptimization(0, 1, 5, 0.5, 500,
+                0.8, 0.01, 1000, cities, 
+                dBDataRetriever.getPurchasePoints(commodities, cities));
+        aco.setCommodities(commodities);
+        aco.solve();
     }
 }

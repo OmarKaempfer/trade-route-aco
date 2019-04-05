@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.stream.IntStream;
 import model.City;
 import model.Commodity;
-import model.ProfitCalculator;
+import economy.ProfitCalculator;
 
 
 public class AntColonyOptimization {
@@ -42,7 +42,8 @@ public class AntColonyOptimization {
     private double shipCapacity = 100;
 
     public AntColonyOptimization(double c, double alpha, double beta, double evaporation, 
-            double Q, double antFactor, double randomFactor, int maxIter, City[] cities) {
+            double Q, double antFactor, double randomFactor, int maxIter, City[] cities,
+            HashMap<Commodity, City[]> purchasePoints) {
         this.c = c;
         this.alpha = alpha;
         this.beta = beta;
@@ -53,6 +54,7 @@ public class AntColonyOptimization {
         this.maxIterations = maxIter;
         this.numberOfCities = cities.length;
         this.cities = cities;
+        this.purchasePoints = purchasePoints;
         this.graph = generateGraphMatrix();
         numberOfAnts = (int) (numberOfCities * antFactor);
 
@@ -109,7 +111,7 @@ public class AntColonyOptimization {
                 //station that buys it
                 for(int k = 0; k < purchasingCities.length; k++) {
                     citySpecificProfit[k] = ProfitCalculator.calculateProfit(currentCity, 
-                                purchasingCities[j], commoditiesSold[j], this.shipCapacity);
+                                purchasingCities[k], commoditiesSold[j], this.shipCapacity);
                 }
                 commoditiesProfit[j] = citySpecificProfit;
             }
@@ -181,7 +183,6 @@ public class AntColonyOptimization {
      * Use this method to run the main logic
      */
     public int[][] solve() {
-        setupAnts();
         clearTrails();
         for(int i=0; i < maxIterations; i++) {
             setupAnts();
@@ -229,9 +230,11 @@ public class AntColonyOptimization {
         //If the randomFactor is fulfilled a random city is visited
         if (random.nextDouble() < randomFactor) {
             int randomCommodity = 
-                random.nextInt(ant.getCurrentCity().getSales().keySet().size());
+                random.nextInt(ant.getCurrentCity().getSales().size());
         
-            City[] purchasingCities = purchasePoints.get(randomCommodity);
+            City[] purchasingCities = 
+                    purchasePoints.get(ant.getCurrentCity().getSales().keySet()
+                            .stream().toArray(Commodity[] ::new)[randomCommodity]);
             int randomCity = random.nextInt(purchasingCities.length);
             return new int[] {randomCommodity, randomCity};
         }
@@ -251,8 +254,8 @@ public class AntColonyOptimization {
         
         int randomCommodity = 
             random.nextInt(ant.getCurrentCity().getSales().keySet().size());
-
-        City[] purchasingCities = purchasePoints.get(randomCommodity);
+        City[] purchasingCities = purchasePoints.get(commodities[randomCommodity]);
+        System.out.println("");
         int randomCity = random.nextInt(purchasingCities.length);
         return new int[] {randomCommodity, randomCity};
     }
@@ -290,12 +293,25 @@ public class AntColonyOptimization {
                 }
             }
         }
-             
+        System.out.println("");
         for(int j = 0; j < commodities.length; j++) {
             currentCommodityPP = purchasePoints.get(commodities[j]);
             
             for(int k = 0; k < currentCommodityPP.length; k++) {
-                double numerator = Math.pow(trails[currentCityIndex][j][k], alpha) * Math.pow(1.0 / graph[currentCityIndex][j][k], beta);
+                double numerator;
+                    if(graph[currentCityIndex][j][k] < -0.1) {
+                        numerator
+                        = Math.pow(trails[currentCityIndex][j][k], alpha) * 
+                            Math.pow(1 / -graph[currentCityIndex][j][k], beta);
+
+                    } else if(graph[currentCityIndex][j][k] > 0.1){
+                        numerator
+                        = Math.pow(trails[currentCityIndex][j][k], alpha) * 
+                            Math.pow(graph[currentCityIndex][j][k], beta);
+                    } else {
+                        numerator
+                        = Math.pow(trails[currentCityIndex][j][k], alpha);
+                    }
                 probabilities[j][k] = numerator / pheromone;
             }
         }

@@ -35,7 +35,7 @@ public class City {
     }
     
     public double getSellingPrice(Commodity commodity) {
-        return purchases.get(commodity);
+        return sales.get(commodity);
     }
     
     public Commodity getSellingCommodity(int index) {

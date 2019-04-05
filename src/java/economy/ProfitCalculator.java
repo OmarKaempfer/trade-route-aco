@@ -1,8 +1,12 @@
-package model;
+package economy;
+
+import model.City;
+import model.Commodity;
+import model.Location;
 
 public class ProfitCalculator {
     
-    private static final double COST_PER_DST_UNIT = 1;
+    private static final double COST_PER_DST_UNIT = 1e-7;
     
     public static double calculateDistance(Location start, Location end) {
         return Math.sqrt(Math.pow(end.getX() - start.getX(), 2) + 

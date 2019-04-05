@@ -12,11 +12,12 @@ public class Ant
     protected City[] cities;
     private HashMap<Commodity, City[]> purchasePoints;
 
-    public Ant(int tourSize, City[] cities, 
+    public Ant(int jumpsNumber, City[] cities, 
             HashMap<Commodity,City[]> purchasePoints) {
-        this.trailSize = tourSize;
+        this.trailSize = jumpsNumber;
         this.trail = new int[trailSize][3];
         this.purchasePoints = purchasePoints;
+        this.cities = cities;
         this.visited = initializeVisited();
     }
 
@@ -25,15 +26,15 @@ public class Ant
         trail[currentIndex + 1][1] = targetCity;
         
         if(commodity == -1) {
-            currentCity = cities[trail[0][1]];
+            currentCity = cities[targetCity];
             trail[currentIndex + 1][2] = targetCity;
         } else {
-            trail[currentIndex + 1][2] = getIndexOf(cities, currentCity);   //storing the "cities" previous city index
+            System.out.println("");
             currentCity = purchasePoints.get(currentCity
-                        .getSellingCommodity(trail[currentIndex][0]))[targetCity];
+                        .getSellingCommodity(commodity))[targetCity];
+            trail[currentIndex + 1][2] = getIndexOf(cities, currentCity);   //storing the city "cities" index
+            visited[trail[currentIndex][2]][commodity][targetCity] = true;
         }
-        
-        visited[trail[currentIndex + 1][2]][commodity][targetCity] = true;
     }
 
     protected boolean visited(int i, int j, int k) {
