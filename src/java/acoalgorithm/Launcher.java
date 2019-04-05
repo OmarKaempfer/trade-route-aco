@@ -24,6 +24,7 @@ public class Launcher {
         
 
     public static void main(String[] args) {
+        System.setErr(System.out);
         launch();
     }
     
@@ -38,7 +39,7 @@ public class Launcher {
         }
         AntColonyOptimization aco = new AntColonyOptimization(0, 1, 5, 0.5, 500,
                 0.8, 0.01, 1000, cities, 
-                dBDataRetriever.getPurchasePoints(commodities, cities));
+                dBDataRetriever.getPurchasePoints(commodities, cities), 3);
         aco.setCommodities(commodities);
         aco.solve();
     }

@@ -3,8 +3,7 @@ package acoalgorithm;
 import java.util.HashMap;
 import model.*;
 
-public class Ant 
-{
+public class Ant {
     protected int trailSize;
     protected int[][] trail;
     protected boolean[][][] visited;
@@ -22,14 +21,22 @@ public class Ant
     }
 
     protected void tradeWith(int currentIndex, int commodity, int targetCity) {
-        trail[currentIndex + 1][0] = commodity;
-        trail[currentIndex + 1][1] = targetCity;
+        trail[currentIndex + 1][0] = commodity;     //city sales index
+        trail[currentIndex + 1][1] = targetCity;    //purchasePoints index
         
         if(commodity == -1) {
             currentCity = cities[targetCity];
             trail[currentIndex + 1][2] = targetCity;
         } else {
-            System.out.println("");
+            System.out.println("*-------------------------------*");
+            System.out.println(currentCity.getName());
+            System.out.println(currentCity.getSellingCommodity(commodity));
+            System.out.println(currentCity.getSellingCommodity(commodity).getName());
+            System.out.println(purchasePoints.get(currentCity
+                        .getSellingCommodity(commodity)).length);
+            System.out.println(purchasePoints.keySet().contains(currentCity
+                        .getSellingCommodity(commodity)));
+            
             currentCity = purchasePoints.get(currentCity
                         .getSellingCommodity(commodity))[targetCity];
             trail[currentIndex + 1][2] = getIndexOf(cities, currentCity);   //storing the city "cities" index
