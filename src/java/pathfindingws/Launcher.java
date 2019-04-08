@@ -25,6 +25,16 @@ public class Launcher {
         return transformToWSFormat(transactions, shipCapacity);
     }
 
+    public static String launchFastLowPrecision(int jumps, int shipCapacity) {
+        ACOModel acoModel = generateACOModel();
+        ACOParameters acoParameters = new ACOParameters();
+        acoParameters.setMaxIterations(1000);
+        acoParameters.setAntFactor(0.6);
+        Transaction[] transactions = new AntColonyOptimization(acoParameters, acoModel, 
+                shipCapacity, jumps).solve();
+        
+        return transformToWSFormat(transactions, shipCapacity);
+    }
     private static ACOModel generateACOModel() {
         DBDataRetriever dBDataRetriever = new DBDataRetriever();
         City[] cities = dBDataRetriever.getAllCities();

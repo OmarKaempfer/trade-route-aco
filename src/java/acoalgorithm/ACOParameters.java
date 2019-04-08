@@ -6,9 +6,9 @@ public class ACOParameters {
     private final double beta;                           //distance priority
     private final double evaporation;
     private final double Q;                              //pheromone left on trail per ant
-    private final double antFactor;                      //no of ants per node
+    private double antFactor;                      //no of ants per node
     private final double randomFactor;                   //introducing randomness
-    private final int maxIterations;
+    private int maxIterations;
 
     public ACOParameters() {
         this.startingTrailValue = 0;
@@ -75,6 +75,14 @@ public class ACOParameters {
 
     public int getMaxIterations() {
         return maxIterations;
+    }
+    
+    public void setMaxIterations(int maxIterations) {
+        this.maxIterations = maxIterations;
+    }
+    
+    public void setAntFactor(double antFactor) {
+        this.antFactor = antFactor;
     }
     
 }

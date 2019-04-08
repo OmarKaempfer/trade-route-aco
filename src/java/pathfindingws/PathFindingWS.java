@@ -14,4 +14,11 @@ public class PathFindingWS {
                         @WebParam(name = "capacity") int capacity) {
         return Launcher.launch(jumps, capacity);
     }
+    
+    
+    @WebMethod(operationName = "getBestPathLowPrecision")
+    public String getBestPathLowPrecision(@WebParam(name = "jumps") int jumps, 
+                        @WebParam(name = "capacity") int capacity) {
+        return Launcher.launchFastLowPrecision(jumps, capacity);
+    }
 }
