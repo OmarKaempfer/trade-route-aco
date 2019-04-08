@@ -20,7 +20,17 @@ public class ACOParameters {
         this.randomFactor = 0.01;
         this.maxIterations = 3000;
     }
-
+    /**
+     * 
+     * @param startingTrailValue the value we use to initialize the trails
+     * @param alpha  the weight of the ant trails ant trails in the probability calculation
+     * @param beta the weight of the profit in the probability calculation
+     * @param evaporation the rate at which we decrease the total left pheromone
+     * @param Q the total contribution of pheromone an ant can make
+     * @param antFactor the amount of ants per node
+     * @param randomFactor chance of making a random transaction
+     * @param maxIterations max number of iterations
+     */
     public ACOParameters(double startingTrailValue, double alpha, double beta, 
             double evaporation, double Q, double antFactor, double randomFactor, 
             int maxIterations) {

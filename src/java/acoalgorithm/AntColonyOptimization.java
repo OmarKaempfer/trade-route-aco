@@ -68,6 +68,12 @@ public class AntColonyOptimization {
         IntStream.range(0, numberOfAnts).forEach(i -> ants[i] = new Ant(nrOfJumps));
     }
 
+    /**
+     * Generates the profit graph for the current aco model, this graph links
+     * each transaction with its profit, calculated taking into consideration
+     * the distance and the goods prices.
+     * @return the profit graph
+     */
     public Map<Transaction, Double> generateProfitGraph() {
         Map<Transaction, Double> graph = new HashMap<Transaction, Double>();
         for (City startPoint : cities) {
@@ -97,7 +103,9 @@ public class AntColonyOptimization {
     }
 
     /**
-     * Use this method to run the main logic
+     * Main ant colony algorithm logic. With the current aco parameters and aco
+     * model it tries to find the most profitable route and prints the solution.
+     * @return transactions an array with the best route order found
      */
     public Transaction[] solve() {
         clearTrails();
@@ -111,6 +119,9 @@ public class AntColonyOptimization {
         return bestRouteOrder.clone();
     }
 
+    /**
+     * Prints the current best total profit and the best route order.
+     */
     public void printSolution() {
         this.s = "";
         s+=("***********************************************" +
@@ -129,8 +140,10 @@ public class AntColonyOptimization {
         s+="\n------------------------------------------\n";
         System.out.println(s);
     }
+    
     /**
-     * Prepare ants for the simulation
+     * Clears each ant current values and initializes each ant to a random city.
+     * Now the ants are ready for a simulation.
      */
     private void setupAnts() {
         for(int i = 0; i < numberOfAnts; i++) {
@@ -143,7 +156,8 @@ public class AntColonyOptimization {
     }
 
     /**
-     * At each iteration, move ants
+     * Moves the ants making a step in the algorithm. A complete transactions
+     * route is performed by each ant.
      */
     private void moveAnts() {
         Transaction transaction;
@@ -156,7 +170,16 @@ public class AntColonyOptimization {
         }
     }
 
-
+    /**
+     * Selects the next transaction to be performed by the given ant. The next
+     * transaction will be picked according to the different probabilities
+     * calculated with the ant trails and the profit of the transaction. If the
+     * random factor is fulfilled, a random transaction will be selected,
+     * disregarding the calculated probabilities.
+     * 
+     * @param ant the ant for which we want its next transaction
+     * @return transaction
+     */
     private Transaction selectNextTransaction(Ant ant) {
         City currentCity = ant.getCurrentCity();
         Commodity[] sales = currentCity.getSales();
@@ -184,6 +207,11 @@ public class AntColonyOptimization {
         return generateRandomTransaction(currentCity);
     }
 
+    /**
+     * Generates a random valid transaction given the currentCity.
+     * @param currentCity the city for which we want a random transaction
+     * @return randomTransaction valid random transaction
+     */
     private Transaction generateRandomTransaction(City currentCity) {
         int purchasingCitiesLength = 0;
         City randomCity;
@@ -192,10 +220,8 @@ public class AntColonyOptimization {
         Commodity[] sales = currentCity.getSales();
         
         while(purchasingCitiesLength == 0) {
-            randomCommodity =
-                    sales[random.nextInt(sales.length)];
-            purchasingCities =
-                    purchasePoints.get(randomCommodity);
+            randomCommodity = sales[random.nextInt(sales.length)];
+            purchasingCities = purchasePoints.get(randomCommodity);
             purchasingCitiesLength = purchasingCities.length;
         }
         
@@ -205,7 +231,11 @@ public class AntColonyOptimization {
     }
 
     /**
-     * Calculate the next city picks probabilities
+     * Calculates the probability for each transaction, it stores those
+     * probabilities in the 'probabilities' variable. The result is a graph
+     * which links each transaction with its probability of being picked.
+     * 
+     * @param ant the ant which probabilities we want to calculate
      */
     public void calculateProbabilities(Ant ant) {
 
@@ -241,6 +271,12 @@ public class AntColonyOptimization {
         }
     }
 
+    /**
+     * Calculates the contribution of the total overall pheromones of the other
+     * ants.
+     * @param ant
+     * @return pheromone 
+     */
     private double calculatePheromone(Ant ant) {
         City currentCity = ant.getCurrentCity();
         Commodity[] sales = currentCity.getSales();
@@ -276,7 +312,8 @@ public class AntColonyOptimization {
     }
     
     /**
-     * Update trails that ants used
+     * Updates the trails used by the ants with their new pheromone values,
+     * for each ant that left an specific trail we add its contribution.
      */
     private void updateTrails() {
         Iterator<Transaction> trailsIterator = trailGraph.keySet().iterator();
@@ -299,7 +336,8 @@ public class AntColonyOptimization {
     }
 
     /**
-     * Update the best solution
+     * Updates the best solution by storing the best ant trail found and the
+     * best total profit found.
      */
     private void updateBest() {
         if (bestRouteOrder == null) {

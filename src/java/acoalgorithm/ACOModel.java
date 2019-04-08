@@ -1,18 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package acoalgorithm;
 
 import java.util.HashMap;
 import model.City;
 import model.Commodity;
 
-/**
- *
- * @author Vaehnor
- */
 public class ACOModel {
     private final City[] cities;
     private final Commodity[] commodities;

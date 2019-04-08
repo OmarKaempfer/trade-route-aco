@@ -16,7 +16,11 @@ public class Ant {
         this.nrOfJumps = nrOfJumps;
         this.trail = new Transaction[nrOfJumps];
     }
-
+    /**
+     * Performs the given transaction, increasing the ant trail size
+     * and storing the transaction in its trail
+     * @param transaction 
+     */
     protected void performTransaction(Transaction transaction) {
         if(trailSize < nrOfJumps) {
             trail[trailSize] = transaction;
@@ -25,6 +29,11 @@ public class Ant {
         }
     }
 
+    /**
+     * Returns whether the given transaction has already been done or not
+     * @param transaction
+     * @return 
+     */
     protected boolean visited(Transaction transaction) {
         for(Transaction antTransaction : trail) {
             if(transaction.equals(antTransaction)) {
@@ -34,6 +43,11 @@ public class Ant {
         return false;
     }
 
+    /**
+     * Calculates the current ant trail total profit
+     * @param graph
+     * @return profit the total trail profit
+     */
     protected double trailProfit(Map<Transaction, Double> graph) {
         double profit = 0;
         
